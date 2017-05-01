@@ -8,8 +8,8 @@ program.version(require('../package.json').version)
   .option('-p, --password [value]', 'password')
   .option('-s, --wifiSsid [value]', 'wifi ssid')
   .option('-P, --wifiPwd [value]', 'wifi password')
-  .option('-n, --nodeName [value]', 'wio-node name')
-  .option('-a, --nodeAP [value]', 'wio-node ssid')
+  .option('-n, --wioName [value]', 'wio-node name')
+  .option('-a, --wioSsid [value]', 'wio-node ssid')
   .option('-l, --list', 'listing mode')
   .parse(process.argv);
 
@@ -27,7 +27,7 @@ const parameters = {
     key: '',
     sn: '',
     name: program.nodeName,
-    ap: ''
+    ssid: ''
   },
 };
 wioSetup = new WioSetup();
