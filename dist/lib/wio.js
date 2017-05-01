@@ -18,6 +18,10 @@ var _querystring = require('querystring');
 
 var _querystring2 = _interopRequireDefault(_querystring);
 
+var _dgram = require('dgram');
+
+var _dgram2 = _interopRequireDefault(_dgram);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -32,6 +36,8 @@ var WIOLINK_COMMON = 'seeed_wiolink';
 var WIOLINK_SOURCE = 4;
 var SERVER_OUT_PREFIX = 'http://bazaar.seeed.cc/api/index.php?';
 var OTA_INTERNATIONAL_URL = 'https://us.wio.seeed.io';
+
+var AP_IP = '192.168.4.1';
 
 function getSign(uri, timestamp) {
   return new Promise(function (resolve) {
@@ -69,8 +75,11 @@ var WioSetup = function () {
           api_key: WIOLINK_APPID
         };
         return _axios2.default.post('' + SERVER_OUT_PREFIX + HINGE_USER_LOGIN, _querystring2.default.stringify(body)).then(function (result) {
-          _this.params.user.token = result.data.data.token;
-          return result.data;
+          if (result.data.data) {
+            _this.params.user.token = result.data.data.token;
+            return result.data;
+          }
+          return Promise.reject('login failed');
         });
       });
     }
@@ -92,7 +101,6 @@ var WioSetup = function () {
       return instance.post(API_NODES_CREATE, _querystring2.default.stringify(body)).then(function (result) {
         _this2.params.node.sn = result.data.node_sn;
         _this2.params.node.key = result.data.node_key;
-        console.log(_this2.params);
         return result.data;
       });
     }
@@ -127,6 +135,36 @@ var WioSetup = function () {
       return instance.post(API_NODES_RENAME, _querystring2.default.stringify(body)).then(function (result) {
         _this3.params.node = params.node;
         return result.data;
+      });
+    }
+  }, {
+    key: 'updateWifiSetting',
+    value: function updateWifiSetting(params) {
+      var _this4 = this;
+
+      return new Promise(function (resolve, reject) {
+        var cmd = 'APCFG: ' + params.wifi.ssid + '\t' + params.wifi.password + '\t' + _this4.params.node.key + '\t' + _this4.params.node.sn + '\t' + OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '') + '\t' + OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '') + '\t';
+        var client = _dgram2.default.createSocket('udp4');
+        var timeout = setTimeout(function () {
+          client.close();
+          reject('Connection timeout');
+        }, 5000);
+        client.on('listening', function () {
+          setTimeout(function () {
+            client.send(new Buffer(cmd), 0, cmd.length, 1025, AP_IP);
+          }, 500);
+        });
+        client.on('message', function (message) {
+          clearTimeout(timeout);
+          if (message.toString().substr(0, 2) === 'ok') {
+            client.close();
+            resolve(message);
+            return;
+          }
+          client.close();
+          reject(message.toString());
+        });
+        client.bind(1025, '0.0.0.0');
       });
     }
   }]);

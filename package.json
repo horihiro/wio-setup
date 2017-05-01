@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "bin": {
-    "wiocli": "./bin/cli.js"
+    "wio-setup": "./bin/cli.js"
   },
   "scripts": {
     "gulp": "gulp",
@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "axios": "^0.16.1",
+    "commander": "^2.9.0",
     "prompt-promise": "^1.0.3",
     "sha1": "^1.1.1"
   }

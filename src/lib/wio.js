@@ -1,6 +1,7 @@
 import sha1 from 'sha1';
 import axios from 'axios';
 import querystring from 'querystring';
+import dgram from 'dgram';
 
 const API_NODES_CREATE = '/v1/nodes/create';
 const API_NODES_LIST = '/v1/nodes/list';
@@ -13,6 +14,7 @@ const WIOLINK_SOURCE = 4;
 const SERVER_OUT_PREFIX = 'http://bazaar.seeed.cc/api/index.php?';
 const OTA_INTERNATIONAL_URL = 'https://us.wio.seeed.io';
 
+const AP_IP = '192.168.4.1';
 
 function getSign(uri, timestamp) {
   return new Promise((resolve) => {
@@ -43,8 +45,11 @@ export default class WioSetup {
       };
       return axios.post(`${SERVER_OUT_PREFIX}${HINGE_USER_LOGIN}`, querystring.stringify(body))
       .then((result) => {
-        this.params.user.token = result.data.data.token;
-        return result.data;
+        if (result.data.data) {
+          this.params.user.token = result.data.data.token;
+          return result.data;
+        }
+        return Promise.reject('login failed');
       });
     });
   }
@@ -64,7 +69,6 @@ export default class WioSetup {
     .then((result) => {
       this.params.node.sn = result.data.node_sn;
       this.params.node.key = result.data.node_key;
-      console.log(this.params);
       return result.data;
     });
   }
@@ -95,6 +99,33 @@ export default class WioSetup {
     .then((result) => {
       this.params.node = params.node;
       return result.data;
+    });
+  }
+
+  updateWifiSetting(params) {
+    return new Promise((resolve, reject) => {
+      const cmd = `APCFG: ${params.wifi.ssid}\t${params.wifi.password}\t${this.params.node.key}\t${this.params.node.sn}\t${OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '')}\t${OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '')}\t`;
+      const client = dgram.createSocket('udp4');
+      const timeout = setTimeout(() => {
+        client.close();
+        reject('Connection timeout');
+      }, 5000);
+      client.on('listening', () => {
+        setTimeout(() => {
+          client.send(new Buffer(cmd), 0, cmd.length, 1025, AP_IP);
+        }, 500);
+      });
+      client.on('message', (message) => {
+        clearTimeout(timeout);
+        if (message.toString().substr(0, 2) === 'ok') {
+          client.close();
+          resolve(message);
+          return;
+        }
+        client.close();
+        reject(message.toString());
+      });
+      client.bind(1025, '0.0.0.0');
     });
   }
 }
