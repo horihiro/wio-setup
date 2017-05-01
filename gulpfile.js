@@ -32,7 +32,7 @@ gulp.task('lint', function() {
 gulp.task('babel', function() {
   gulp.src(['./src/*.js', './src/**/*.js'])
     .pipe(babel())
-    .pipe(gulp.dest('./dist/'))
+    .pipe(gulp.dest('./'))
 });
 
 gulp.task('watch', function() {

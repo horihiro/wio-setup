@@ -2,6 +2,7 @@ import prompt from 'prompt-promise';
 
 import Wio from './lib/wio';
 import loop from './lib/promise-loop';
+import Wifi from './lib/wifi';
 
 const wio = new Wio();
 
@@ -21,40 +22,36 @@ const startSpin = () => {
     process.stdout.write(`${spin[pos]}`);
     pos = pos === spin.length - 1 ? 0 : pos + 1;
   }, 100);
-}
+};
 const stopSpin = () => {
   clearInterval(spinTimeout);
   spinTimeout = null;
   process.stdout.clearLine();
   process.stdout.cursorTo(0);
-}
+};
 
 export default class WioSetup {
-  constructor() {
-    this.timeout = null;
-  }
-
   setup(parameters) {
-    const params = {
+    this.params = {
       user: {},
       wifi: {},
       node: {},
     };
     return (parameters.user.email ? Promise.resolve(parameters.user.email) : prompt('email: '))
-      .then((email) => { params.user.email = email; })
+      .then((email) => { this.params.user.email = email; })
       .then(() => (parameters.user.password ? Promise.resolve(parameters.user.password) : prompt.password('password: '))
-      .then((password) => { params.user.password = password; }))
+      .then((password) => { this.params.user.password = password; }))
       .then(() => (parameters.wifi.ssid ? Promise.resolve(parameters.wifi.ssid) : prompt('wifi ssid: '))
-      .then((ssid) => { params.wifi.ssid = ssid; }))
-      .then(() => (parameters.wifi.password ? Promise.resolve(parameters.wifi.password) : prompt.password(`wifi password for '${params.wifi.ssid}': `))
-      .then((password) => { params.wifi.password = password; }))
+      .then((ssid) => { this.params.wifi.ssid = ssid; }))
+      .then(() => (parameters.wifi.password ? Promise.resolve(parameters.wifi.password) : prompt.password(`wifi password for '${this.params.wifi.ssid}': `))
+      .then((password) => { this.params.wifi.password = password; }))
       .then(() => (parameters.node.name ? Promise.resolve(parameters.node.name) : prompt('wio-node name: '))
-      .then((name) => { params.node.name = name; }))
+      .then((name) => { this.params.node.name = name; }))
       .then(() => (parameters.node.ap ? Promise.resolve(parameters.node.ap) : Promise.resolve(''))
-      .then((ap) => { params.node.ap = ap; }))
+      .then((ap) => { this.params.node.ap = ap; }))
       .then(() => {
         startSpin();
-        return wio.login(params);
+        return wio.login(this.params);
       })
       .then(() => {
         stopSpin();
@@ -71,23 +68,23 @@ export default class WioSetup {
           () => new Promise((resolve) => {
             startSpin();
             setTimeout(() => {
-              resolve(['WIO_HOGE', 'WIO_FUGA']);
+              Wifi.scan().then((ssids) => {
+                resolve(ssids.filter(ssid => /^WIO_/.test(ssid)));
+              });
             }, 5000);
           })
           .then((aps) => {
             stopSpin();
-            if (!aps || aps.length === 0) return {answer: false, aps};
+            if (!aps || aps.length === 0) return { answer: false, aps };
             process.stdout.write(`${aps.map((ap, pos) => `[${pos}]: ${ap}`).join('\n')}\n`);
             return prompt('select AP from above or [r] to re-scan :')
-            .then((answer) => {
-              return {answer: answer, aps};
-            });;
+            .then(answer => ({ answer, aps }));
           })
           .then((result) => {
             if (!result.answer) {
               return { done: false };
             } else if (result.answer === 'r') {
-              result.aps.forEach((ap) => {
+              result.aps.forEach(() => {
                 process.stdout.moveCursor(0, -1);
                 process.stdout.clearLine();
               });
