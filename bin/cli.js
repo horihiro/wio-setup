@@ -26,7 +26,7 @@ const parameters = {
   node: {
     key: '',
     sn: '',
-    name: program.nodeName,
+    name: program.wioName,
     ssid: ''
   },
 };
