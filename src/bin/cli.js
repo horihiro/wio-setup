@@ -121,13 +121,52 @@ function main() {
     }
     return Promise.resolve();
   })
-  .then(() => {
+  .then(() =>{
+    startSpin();
+    return wioSetup.list(params)
+    .then((nodeList) => {
+      stopSpin();
+      if (nodeList.nodes.length === 0) return Promise.resolve({});
+      nodeList.nodes.forEach((node, index) => {
+        process.stdout.write(`[${index+1}] ${node.name}\n`);
+      });
+      process.stdout.write('[0] creating new one\n\n');
+      return loop(
+        Promise.resolve(),
+        () => {
+          return prompt(`select [0-${nodeList.nodes.length}]: `)
+          .then((key) => {
+            const index = parseInt(key);
+            if (isNaN(index) || index > nodeList.nodes.length || index < 0) {
+              process.stdout.moveCursor(0, -1);
+              process.stdout.clearLine();
+              return Promise.resolve({ done: false });
+            }
+            const value = index === 0 ? {} : { sn: nodeList.nodes[index - 1].node_sn, key: nodeList.nodes[index - 1].node_key, name: nodeList.nodes[index - 1].name };
+            return Promise.resolve({ done: true, value});
+          });
+        }
+      );
+    });
+  })
+  .then((node) => {
+    params.node.sn = node.sn;
+    params.node.key = node.key;
+    params.node.name = params.node.name || node.name;
     if (!params.node.name) {
-      return prompt('wio-node name: ')
-      .then((name) => {
-        params.node.name = name;
-        return Promise.resolve();
-      })
+      const message = `wio-node name${node.name ? ' [' + node.name + ']' : ''}` + ': ';
+      return loop(
+        Promise.resolve(),
+        () => {
+          return prompt(message)
+          .then((name) => {
+            process.stdout.moveCursor(0, -1);
+            process.stdout.clearLine();
+            params.node.name = name !== '' ? name : params.node.name;
+            return Promise.resolve({ done: params.node.name && params.node.name !== ''});
+          })
+        }
+      );
     }
     return Promise.resolve();
   })
