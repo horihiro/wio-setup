@@ -1,4 +1,3 @@
-import sha1 from 'sha1';
 import axios from 'axios';
 import querystring from 'querystring';
 import dgram from 'dgram';
@@ -6,51 +5,27 @@ import dgram from 'dgram';
 const API_NODES_CREATE = '/v1/nodes/create';
 const API_NODES_LIST = '/v1/nodes/list';
 const API_NODES_RENAME = '/v1/nodes/rename';
-const HINGE_USER_LOGIN = 'r=common/user/login';
-const WIOLINK_APPID = 'wiolink';
-const WIOLINK_APPKEY = 'MPP=tGjz</p5';
-const WIOLINK_COMMON = 'seeed_wiolink';
-const WIOLINK_SOURCE = 4;
-const SERVER_OUT_PREFIX = 'http://bazaar.seeed.cc/api/index.php?';
 const OTA_INTERNATIONAL_URL = 'https://us.wio.seeed.io';
+const SERVER_LOGIN = 'https://wio.seeed.io/login';
 
 const AP_IP = '192.168.4.1';
-
-function getSign(uri, timestamp) {
-  return new Promise((resolve) => {
-    const list = [];
-    list.push(WIOLINK_APPID);
-    list.push(WIOLINK_APPKEY);
-    list.push(WIOLINK_COMMON);
-    list.push(uri);
-    list.push(timestamp);
-
-    return resolve(sha1(list.sort().join('')));
-  });
-}
 
 export default class WioSetup {
   login(parameters) {
     this.params = parameters;
-    const timestamp = `${parseInt(Date.now() / 1000, 10)}`;
-    return getSign(HINGE_USER_LOGIN, timestamp)     // create signature
-    .then((sign) => {
-      const body = {
-        email: this.params.user.email,
-        password: this.params.user.password,
-        timestamp,
-        sign,
-        source: WIOLINK_SOURCE,
-        api_key: WIOLINK_APPID,
-      };
-      return axios.post(`${SERVER_OUT_PREFIX}${HINGE_USER_LOGIN}`, querystring.stringify(body))
-      .then((result) => {
-        if (result.data.data) {
-          this.params.user.token = result.data.data.token;
-          return result.data;
-        }
-        return Promise.reject('login failed');
-      });
+    const body = {
+      email: this.params.user.email,
+      password: this.params.user.password,
+    };
+    return axios.post(`${SERVER_LOGIN}`, querystring.stringify(body))
+    .then((result) => {
+      const re = /^token: ([^ ]+)$/;
+      const response = (result.data.split(/\n/).filter(l => re.test(l)).map(l => l.replace(re, '$1')));
+      if (response.length === 1) {
+        this.params.user.token = response[0];
+        return result.data;
+      }
+      return Promise.reject('login failed');
     });
   }
 

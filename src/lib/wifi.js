@@ -1,32 +1,32 @@
-import {exec} from 'child_process';
+import { exec } from 'child_process';
 
-const re_ssid = /^SSID\W*:\W*/;
-const cmd_darwin = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I';
-const cmd_win32 = 'netsh.exe wlan show interfaces';
+const reSsid = /^SSID\W*:\W*/;
+const cmdDarwin = '/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport -I';
+const cmdWin32 = 'netsh.exe wlan show interfaces';
 
-const execNetSh = () => {
+const execNetSh = function execNetSh() {
   return new Promise((resolve, reject) => {
-    exec(cmd_win32, (err, stdout, stdin) => {
+    exec(cmdWin32, (err, stdout, stderr) => {
       if (err) {
-        reject(err);
+        reject(stderr);
         return;
       }
-      resolve(stdout.split(/\n/).filter(l => re_ssid.test(l.trim())).map(l => l.trim().replace(re_ssid, ''))[0]);
+      resolve(stdout.split(/\n/).filter(l => reSsid.test(l.trim())).map(l => l.trim().replace(reSsid, ''))[0]);
     });
   });
 };
 
 export default class Wifi {
   static getCurrentSsid() {
-    return new Promise((resolve) => {
-      switch(process.platform) {
+    return new Promise((resolve, reject) => {
+      switch (process.platform) {
         case 'darwin':
-          exec(cmd_darwin, (err, stdout) => {
+          exec(cmdDarwin, (err, stdout) => {
             if (err) {
               reject(err);
               return;
             }
-            const ssid = stdout.split(/\n/).filter(l => re_ssid.test(l.trim())).map(l => l.trim().replace(re_ssid, ''))[0];
+            const ssid = stdout.split(/\n/).filter(l => reSsid.test(l.trim())).map(l => l.trim().replace(reSsid, ''))[0];
             resolve(ssid);
           });
           break;
@@ -42,10 +42,10 @@ export default class Wifi {
         case 'linux':
           exec('cat /proc/version | grep Microsft | wc -l', (err, stdout, stderr) => {
             if (err) {
-              reject(err);
+              reject(stderr);
               return;
             }
-            if (parseInt(stdout) === 0) {
+            if (parseInt(stdout, 10) === 0) {
               execNetSh()
               .then((ssid) => {
                 resolve(ssid);
@@ -59,6 +59,8 @@ export default class Wifi {
             resolve('');
           });
           break;
+        default:
+          reject('unknown platform');
       }
     });
   }

@@ -30,7 +30,6 @@
   "dependencies": {
     "axios": "^0.16.1",
     "commander": "^2.9.0",
-    "prompt-promise": "^1.0.3",
-    "sha1": "^1.1.1"
+    "prompt-promise": "^1.0.3"
   }
 }

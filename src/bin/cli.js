@@ -24,7 +24,7 @@ const startSpin = () => {
   }, 100);
 };
 const stopSpin = () => {
-  clearInterval(spinTimeout);
+  if (spinTimeout) clearInterval(spinTimeout);
   spinTimeout = null;
   process.stdout.clearLine();
   process.stdout.cursorTo(0);
@@ -39,7 +39,7 @@ function main() {
     .option('-P, --wifiPwd [value]', 'wifi password')
     .option('-n, --wioName [value]', 'wio-node name')
     .option('-a, --wioSsid [value]', 'wio-node ssid')
-    .option('-l, --list', 'listing mode')
+    .option('-l, --list', 'list your wio-node')
     .parse(process.argv);
 
   const params = {
@@ -86,16 +86,28 @@ function main() {
     if (program.list) {
       startSpin();
       return wioSetup.list(params)
-      .then((nodeList) => {
+      .then((nodes) => {
         stopSpin();
-        const separator = '----';
-        process.stdout.write(`${separator}\n`);
-        process.stdout.write(nodeList.nodes.map(node => `  name: ${node.name}
-  online: ${node.online}
-  node_key: ${node.node_key}
-  node_sn: ${node.node_sn}`,
-        ).join(`\n${separator}\n`));
-        process.stdout.write(`\n${separator}\n`);
+        if (nodes.length === 0) {
+          process.stdout.write(`no wionode.\n`);
+          process.exit(1);
+        }
+        const headers = ['name', 'status', 'access_token'];
+        const widths = [4, 7, 32];
+        nodes.forEach((node) => {
+          if (widths[0] < node.name.length) {
+            widths[0] = node.name.length;
+          }
+        });
+        let gap = widths[0] - 2;
+        process.stdout.write(`${headers[0]}${Array(gap).fill(' ').join('')}${headers[1]}   ${headers[2]}\n`);
+        process.stdout.write(`${Array(widths[0] + widths[1] + widths[2] + 4).fill('-').join('')}\n`);
+        nodes.forEach((node) => {
+          gap = widths[0] - node.name.length + 2;
+          process.stdout.write(`${node.name}${Array(gap).fill(' ').join('')}`);
+          process.stdout.write(`${node.online ? 'online   ' : 'offline  '}`);
+          process.stdout.write(`${node.node_key}\n`);
+        });
         process.exit(1);
       })
     }
@@ -124,25 +136,25 @@ function main() {
   .then(() =>{
     startSpin();
     return wioSetup.list(params)
-    .then((nodeList) => {
+    .then((nodes) => {
       stopSpin();
-      if (nodeList.nodes.length === 0) return Promise.resolve({});
-      nodeList.nodes.forEach((node, index) => {
+      if (nodes.length === 0) return Promise.resolve({});
+      nodes.forEach((node, index) => {
         process.stdout.write(`[${index+1}] ${node.name}\n`);
       });
       process.stdout.write('[0] creating new one\n\n');
       return loop(
         Promise.resolve(),
         () => {
-          return prompt(`select [0-${nodeList.nodes.length}]: `)
+          return prompt(`select [0-${nodes.length}]: `)
           .then((key) => {
             const index = parseInt(key);
-            if (isNaN(index) || index > nodeList.nodes.length || index < 0) {
+            if (isNaN(index) || index > nodes.length || index < 0) {
               process.stdout.moveCursor(0, -1);
               process.stdout.clearLine();
               return Promise.resolve({ done: false });
             }
-            const value = index === 0 ? {} : { sn: nodeList.nodes[index - 1].node_sn, key: nodeList.nodes[index - 1].node_key, name: nodeList.nodes[index - 1].name };
+            const value = index === 0 ? {} : { sn: nodes[index - 1].node_sn, key: nodes[index - 1].node_key, name: nodes[index - 1].name };
             return Promise.resolve({ done: true, value});
           });
         }
@@ -216,10 +228,12 @@ function main() {
     return wioSetup.setup(params);
   })
   .then(() => {
+    stopSpin();
     process.stdout.write(`access_token for '${params.node.name}' is '${params.node.key}'.\n`);
     process.exit(0);
   })
   .catch((err) => {
+    stopSpin();
     process.stderr.write(`${err}\n`)
     process.exit(1);
   })
