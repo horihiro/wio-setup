@@ -81,14 +81,15 @@ export default class WioSetup {
     return new Promise((resolve, reject) => {
       const cmd = `APCFG: ${params.wifi.ssid}\t${params.wifi.password}\t${this.params.node.key}\t${this.params.node.sn}\t${OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '')}\t${OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '')}\t`;
       const client = dgram.createSocket('udp4');
-      const timeout = setTimeout(() => {
-        client.close();
-        reject('Connection timeout');
-      }, 5000);
+      let timeout;
       client.on('listening', () => {
         setTimeout(() => {
           client.send(new Buffer(cmd), 0, cmd.length, 1025, AP_IP);
-        }, 500);
+          timeout = setTimeout(() => {
+            client.close();
+            reject('Connection timeout');
+          }, 5000);
+        }, 1000);
       });
       client.on('message', (message) => {
         clearTimeout(timeout);

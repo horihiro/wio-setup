@@ -38,7 +38,6 @@ function main() {
     .option('-s, --wifiSsid [value]', 'wifi ssid')
     .option('-P, --wifiPwd [value]', 'wifi password')
     .option('-n, --wioName [value]', 'wio-node name')
-    .option('-a, --wioSsid [value]', 'wio-node ssid')
     .option('-l, --list', 'list your wio-node')
     .parse(process.argv);
 
@@ -194,36 +193,33 @@ function main() {
       process.stdout.write('                              　＼／\n');
       process.stdout.write('                           　    ┃\n');
       process.stdout.write('\n');
-      process.stdout.write('connect to Wio-Node AP, \'Wio_XXXXXX\'\n');
-      return prompt('press enter: ')
-      .then(() => {
-        process.stdout.write('checking SSID your machine connected...\n');
-        startSpin();
-        return loop(
-          Promise.resolve(),
-          () => {
-            return new Promise((resolve) => {
-              setTimeout(() => {
-                return Wifi.getCurrentSsid()
-                .then((ssid) => {
-                  if (!ssid || !/^Wio_/.test(ssid)) return resolve({ done: false });
+      process.stdout.write('connect to Wio-Node AP, \'Wio_XXXXXX\'\n\n');
+      process.stdout.write('checking SSID your machine connected...\n');
+      startSpin();
+      return loop(
+        Promise.resolve(),
+        () => {
+          return new Promise((resolve) => {
+            setTimeout(() => {
+              return Wifi.getCurrentSsid()
+              .then((ssid) => {
+                if (!ssid || !/^Wio_/.test(ssid)) return resolve({ done: false });
 
-                  stopSpin();
-                  return prompt(`now connected to SSID '${ssid}', ok? [Y/n]`)
-                  .then((key) => {
-                    if (key === '' || key === 'Y' || key === 'y') return resolve({ done: true });
-                    process.stdout.moveCursor(0, -1);
-                    process.stdout.clearLine();
-                    startSpin();
-                    resolve({ done: false });
-                  })
-                  ;
-                });
-              }, 5000);
-            });
-          }
-        );
-      });
+                stopSpin();
+                return prompt(`now connected to SSID '${ssid}', ok? [Y/n]`)
+                .then((key) => {
+                  if (key === '' || key === 'Y' || key === 'y') return resolve({ done: true });
+                  process.stdout.moveCursor(0, -1);
+                  process.stdout.clearLine();
+                  startSpin();
+                  resolve({ done: false });
+                })
+                ;
+              });
+            }, 5000);
+          });
+        }
+      );
     };
     return wioSetup.setup(params);
   })
