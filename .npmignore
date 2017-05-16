@@ -2,3 +2,5 @@ src/
 gulpfile.js
 
 .eslintrc
+.babelrc
+.npmignore
