@@ -12,6 +12,10 @@ CLI module for setting up wio-node.
     - CommandPrompt
     - Bash on Ubuntu on Windows
 
+### Wio Device
+  - Wio Node<br>
+\# Wio Link is not supported (I don't have it...)
+
 ## Install
 ```
 $ npm install -g wio-setup
@@ -19,7 +23,7 @@ $ npm install -g wio-setup
 
 ## Usage
 
-```
+```shell-session
 $ wio-setup -h
 
   Usage: wio-setup [options]
@@ -38,11 +42,12 @@ $ wio-setup -h
 ### Examples
 for setting up
 
-```
+```shell-session
 $ wio-setup
 ```
 
 for listing your wio-node
-```
+
+```shell-session
 $ wio-setup -l
 ```
