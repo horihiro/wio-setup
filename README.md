@@ -2,6 +2,15 @@
 
 CLI module for setting up wio-node.
 
+## Requirement
+### node version
+  - v6.10.3 or later
+### Operation System
+  - macOS
+  - Windows10 (Creators Update or later) 
+    - CommandPrompt
+    - Bash on Ubuntu on Windows
+
 ## Install
 ```
 $ npm install -g wio-setup
