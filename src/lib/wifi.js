@@ -40,12 +40,12 @@ export default class Wifi {
           });
           break;
         case 'linux':
-          exec('cat /proc/version | grep Microsft | wc -l', (err, stdout, stderr) => {
+          exec('cat /proc/version | grep Microsoft | wc -l', (err, stdout, stderr) => {
             if (err) {
               reject(stderr);
               return;
             }
-            if (parseInt(stdout, 10) === 0) {
+            if (parseInt(stdout, 10) === 1) {
               execNetSh()
               .then((ssid) => {
                 resolve(ssid);
