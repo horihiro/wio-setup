@@ -34,6 +34,7 @@ $ wio-setup -h
     -V, --version           output the version number
     -e, --email [value]     email address
     -p, --password [value]  password
+    -S, --server [value]    server to login (server is 'https://us.wio.seeed.io' when this option is unspecified)
     -s, --wifiSsid [value]  wifi ssid
     -P, --wifiPwd [value]   wifi password
     -n, --wioName [value]   wio-node name
