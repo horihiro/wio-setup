@@ -5,6 +5,7 @@ import dgram from 'dgram';
 const API_NODES_CREATE = '/v1/nodes/create';
 const API_NODES_LIST = '/v1/nodes/list';
 const API_NODES_RENAME = '/v1/nodes/rename';
+const OTA_CHINA_URL = 'https://cn.wio.seeed.io';
 const OTA_INTERNATIONAL_URL = 'https://us.wio.seeed.io';
 const SERVER_LOGIN = 'https://wio.seeed.io/login';
 
@@ -13,6 +14,7 @@ const AP_IP = '192.168.4.1';
 export default class WioSetup {
   login(parameters) {
     this.params = parameters;
+    if (!this.params.user.server) this.params.user.server = OTA_INTERNATIONAL_URL;
     const body = {
       email: this.params.user.email,
       password: this.params.user.password,
@@ -31,7 +33,7 @@ export default class WioSetup {
 
   createNode() {
     const instance = axios.create({
-      baseURL: OTA_INTERNATIONAL_URL,
+      baseURL: this.params.user.server,
       headers: {
         Authorization: this.params.user.token,
       },
@@ -50,7 +52,7 @@ export default class WioSetup {
 
   nodesList() {
     const instance = axios.create({
-      baseURL: OTA_INTERNATIONAL_URL,
+      baseURL: this.params.user.server,
       headers: {
         Authorization: this.params.user.token,
       },
@@ -61,7 +63,7 @@ export default class WioSetup {
 
   rename(params) {
     const instance = axios.create({
-      baseURL: OTA_INTERNATIONAL_URL,
+      baseURL: this.params.user.server,
       headers: {
         Authorization: this.params.user.token,
       },
@@ -79,7 +81,7 @@ export default class WioSetup {
 
   updateWifiSetting(params) {
     return new Promise((resolve, reject) => {
-      const cmd = `APCFG: ${params.wifi.ssid}\t${params.wifi.password}\t${this.params.node.key}\t${this.params.node.sn}\t${OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '')}\t${OTA_INTERNATIONAL_URL.replace(/^[^:]+:\/+/, '')}\t`;
+      const cmd = `APCFG: ${params.wifi.ssid}\t${params.wifi.password}\t${this.params.node.key}\t${this.params.node.sn}\t${this.params.user.server.replace(/^[^:]+:\/+/, '')}\t${this.params.user.server.replace(/^[^:]+:\/+/, '')}\t`;
       const client = dgram.createSocket('udp4');
       let timeout;
       client.on('listening', () => {
