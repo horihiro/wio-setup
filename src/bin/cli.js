@@ -35,6 +35,7 @@ function main() {
   program.version(require('../package.json').version)
     .option('-e, --email [value]', 'email address')
     .option('-p, --password [value]', 'password')
+    .option('-S, --server [value]', 'server to login')
     .option('-s, --wifiSsid [value]', 'wifi ssid')
     .option('-P, --wifiPwd [value]', 'wifi password')
     .option('-n, --wioName [value]', 'wio-node name')
@@ -45,6 +46,7 @@ function main() {
     user: {
       email: program.email,
       password: program.password,
+      server: program.server,
       token: '',
     },
     wifi: {
