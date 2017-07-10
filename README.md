@@ -47,6 +47,12 @@ for setting up
 $ wio-setup
 ```
 
+for setting up (login to china server)
+
+```shell-session
+$ wio-setup --server https://cn.wio.seeed.io
+```
+
 for listing your wio-node
 
 ```shell-session
