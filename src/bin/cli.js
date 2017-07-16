@@ -195,7 +195,7 @@ function main() {
       process.stdout.write('                              　＼／\n');
       process.stdout.write('                           　    ┃\n');
       process.stdout.write('\n');
-      process.stdout.write('connect to Wio-Node AP, \'Wio_XXXXXX\'\n\n');
+      process.stdout.write('connect to Wio-Node AP, \'Wio_XXXXXX\' or \'WioLink_XXXXXX\'\n\n');
       process.stdout.write('checking SSID your machine connected...\n');
       startSpin();
       return loop(
@@ -205,7 +205,7 @@ function main() {
             setTimeout(() => {
               return Wifi.getCurrentSsid()
               .then((ssid) => {
-                if (!ssid || !/^Wio_/.test(ssid)) return resolve({ done: false });
+                if (!ssid || !/^Wio(Link)?_/.test(ssid)) return resolve({ done: false });
 
                 stopSpin();
                 return prompt(`now connected to SSID '${ssid}', ok? [Y/n]`)
