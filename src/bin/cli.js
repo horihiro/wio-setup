@@ -121,11 +121,11 @@ function main() {
       })
     } else if (program.delete) {
       startSpin();
-      params.delete = program.delete;
+      params.node.sn = program.delete;
       return wioSetup.delete(params)
         .then(() => {
           stopSpin();
-          process.stdout.write(`'${params.delete}' is deleted.\n`);
+          process.stdout.write(`'${params.node.sn}' is deleted.\n`);
           process.exit(0);
         })
         .catch((err) => {

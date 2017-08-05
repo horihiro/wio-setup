@@ -125,7 +125,7 @@ export default class WioSetup {
       },
     });
     const body = {
-      node_sn: params.delete,
+      node_sn: params.node.sn,
     };
     return instance.post(API_NODES_DELETE, querystring.stringify(body))
       .then((result) => {
