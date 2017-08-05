@@ -39,6 +39,7 @@ $ wio-setup -h
     -P, --wifiPwd [value]   wifi password
     -n, --wioName [value]   wio-node name
     -l, --list              list your wio-node
+    -d, --delete [sn of wionode]  delete wio-node specified by SN
 ```
 ### Examples
 for setting up
