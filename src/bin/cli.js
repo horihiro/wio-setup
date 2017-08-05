@@ -40,6 +40,7 @@ function main() {
     .option('-P, --wifiPwd [value]', 'wifi password')
     .option('-n, --wioName [value]', 'wio-node name')
     .option('-l, --list', 'list your wio-node')
+    .option('-d, --delete [value]', 'delete wio-node specified by SN')
     .parse(process.argv);
 
   const params = {
@@ -93,19 +94,26 @@ function main() {
           process.stdout.write(`no wionode.\n`);
           process.exit(1);
         }
-        const headers = ['name', 'status', 'access_token'];
-        const widths = [4, 7, 32];
+        const headers = ['name', 'sn', 'status', 'access_token'];
+        const widths = [4, 32, 7, 32];
         nodes.forEach((node) => {
           if (widths[0] < node.name.length) {
             widths[0] = node.name.length;
           }
+          if (widths[1] < node.node_sn.length) {
+            widths[1] = node.node_sn.length;
+          }
         });
-        let gap = widths[0] - 2;
-        process.stdout.write(`${headers[0]}${Array(gap).fill(' ').join('')}${headers[1]}   ${headers[2]}\n`);
-        process.stdout.write(`${Array(widths[0] + widths[1] + widths[2] + 4).fill('-').join('')}\n`);
+        let gaps = [0, 0];
+        gaps[0] = widths[0] - 2;
+        gaps[1] = widths[1] - 2;
+        process.stdout.write(`${headers[0]}${Array(gaps[0]).fill(' ').join('')}${headers[1]}${Array(gaps[1]).fill(' ').join('')}  ${headers[2]}   ${headers[3]}\n`);
+        process.stdout.write(`${Array(widths[0] + widths[1] + widths[2] + widths[3] + 6).fill('-').join('')}\n`);
         nodes.forEach((node) => {
-          gap = widths[0] - node.name.length + 2;
-          process.stdout.write(`${node.name}${Array(gap).fill(' ').join('')}`);
+          gaps[0] = widths[0] - node.name.length + 2;
+          process.stdout.write(`${node.name}${Array(gaps[0]).fill(' ').join('')}`);
+          gaps[1] = widths[1] - node.node_sn.length + 2;
+          process.stdout.write(`${node.node_sn}${Array(gaps[1]).fill(' ').join('')}`);
           process.stdout.write(`${node.online ? 'online   ' : 'offline  '}`);
           process.stdout.write(`${node.node_key}\n`);
         });
