@@ -40,7 +40,7 @@ function main() {
     .option('-P, --wifiPwd [value]', 'wifi password')
     .option('-n, --wioName [value]', 'wio-node name')
     .option('-l, --list', 'list your wio-node')
-    .option('-d, --delete [value]', 'delete wio-node specified by SN')
+    .option('-d, --delete [sn of wionode]', 'delete wio-node specified by SN')
     .parse(process.argv);
 
   const params = {
@@ -117,8 +117,22 @@ function main() {
           process.stdout.write(`${node.online ? 'online   ' : 'offline  '}`);
           process.stdout.write(`${node.node_key}\n`);
         });
-        process.exit(1);
+        process.exit(0);
       })
+    } else if (program.delete) {
+      startSpin();
+      params.delete = program.delete;
+      return wioSetup.delete(params)
+        .then(() => {
+          stopSpin();
+          process.stdout.write(`'${params.delete}' is deleted.\n`);
+          process.exit(0);
+        })
+        .catch((err) => {
+          stopSpin();
+          process.stderr.write(`${err.response.data.error}\n`);
+          process.exit(1);
+        });
     }
     return Promise.resolve();
   })

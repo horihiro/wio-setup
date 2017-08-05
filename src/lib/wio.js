@@ -7,6 +7,7 @@ import DNS from 'dns';
 const API_NODES_CREATE = '/v1/nodes/create';
 const API_NODES_LIST = '/v1/nodes/list';
 const API_NODES_RENAME = '/v1/nodes/rename';
+const API_NODES_DELETE = '/v1/nodes/delete';
 const OTA_INTERNATIONAL_URL = 'https://us.wio.seeed.io';
 const SERVER_LOGIN = 'https://wio.seeed.io/login';
 
@@ -114,6 +115,23 @@ export default class WioSetup {
       this.params.node = params.node;
       return result.data;
     });
+  }
+
+  delete(params) {
+    const instance = axios.create({
+      baseURL: this.params.user.server,
+      headers: {
+        Authorization: this.params.user.token,
+      },
+    });
+    const body = {
+      node_sn: params.delete,
+    };
+    return instance.post(API_NODES_DELETE, querystring.stringify(body))
+      .then((result) => {
+        this.params.node = params.node;
+        return result.data;
+      });
   }
 
   updateWifiSetting(params) {

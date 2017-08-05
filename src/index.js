@@ -26,4 +26,10 @@ export default class WioSetup {
       .then(() => this.wio.nodesList()
       .then(nodeList => nodeList.nodes));
   }
+
+  delete(params) {
+    return this.wio.login(params)
+      .then(() => (params.onLoginSuccess ? params.onLoginSuccess() : null))
+      .then(() => this.wio.delete(params));
+  }
 }
